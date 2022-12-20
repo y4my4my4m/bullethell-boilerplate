@@ -53,6 +53,8 @@ enemy_bullet_trails = []
 # Set up the enemy bullet trail alpha values
 enemy_bullet_trail_alphas = [255, 200, 150, 100, 50, 0]
 enemy_bullet_trail_alpha_index = 0
+# Initialize the enemy bullet trail data list
+enemy_bullet_trail_data = []
 
 # Set up the enemy shooting timer
 enemy_shoot_timer = 0
@@ -112,11 +114,17 @@ while running:
             enemy_bullet.centerx = enemy_rect.centerx + dx * 25
             enemy_bullet.centery = enemy_rect.centery + dy * 25
             enemy_bullets.append(enemy_bullet)
+            # Initialize the enemy bullet trail alpha values and alpha index
+            enemy_bullet_trail_alpha_values = enemy_bullet_trail_alphas
+            enemy_bullet_trail_alpha_index = 0
+            enemy_bullet_trail_alpha = enemy_bullet_trail_alpha_values[enemy_bullet_trail_alpha_index]
+            enemy_bullet_trail_info = (enemy_bullet_trail_alpha_values, enemy_bullet_trail_alpha_index, enemy_bullet_trail_alpha)
+            enemy_bullet_trail_data.append(enemy_bullet_trail_info)
 
     for enemy_bullet in enemy_bullets:
         enemy_bullet.move_ip(0, 5)
         # Change the direction of the bullet every 500 milliseconds
-        if clock.get_time() > 5:
+        if clock.get_time() > 15:
             # Calculate the angle from the center of the spread to the bullet
             angle = math.atan2(enemy_bullet.centery - enemy_rect.centery, enemy_bullet.centerx - enemy_rect.centerx)
             # Expand the bullet outward
@@ -128,15 +136,32 @@ while running:
             trail.centery = enemy_bullet.centery
             enemy_bullet_trails.append(trail)
 
-    # Update the enemy bullet trail positions and alpha values
-    for enemy_bullet_trail in enemy_bullet_trails:
+    # Update the enemy bullet trail positions, alpha values, and alpha indices
+    for i, enemy_bullet_trail in enumerate(enemy_bullet_trails):
         enemy_bullet_trail.move_ip(0, 10)
-        # Fade the bullet trail alpha value
-        enemy_bullet_trail_alpha_index += 1
-        if enemy_bullet_trail_alpha_index >= len(enemy_bullet_trail_alphas):
-            enemy_bullet_trail_alpha_index = 0
+        # Check if the index is within the bounds of the enemy_bullet_trail_data list
+        if i < len(enemy_bullet_trail_data):
+            enemy_bullet_trail_info = enemy_bullet_trail_data[i]
+            enemy_bullet_trail_alpha_values = enemy_bullet_trail_info[0]
+            enemy_bullet_trail_alpha_index = enemy_bullet_trail_info[1]
+            enemy_bullet_trail_alpha = enemy_bullet_trail_info[2]
+            # Fade the bullet trail alpha value
+            enemy_bullet_trail_alpha_index += 1
+            if enemy_bullet_trail_alpha_index >= len(enemy_bullet_trail_alpha_values):
+                enemy_bullet_trail_alpha_index = 0
+            enemy_bullet_trail_alpha = enemy_bullet_trail_alpha_values[enemy_bullet_trail_alpha_index]
+            # Remove the bullet trail if its alpha value is zero
+            if enemy_bullet_trail_alpha <= 0:
+                enemy_bullet_trails.pop(i)
+                enemy_bullet_trail_data.pop(i)
+                continue
+            enemy_bullet_trail_info = (enemy_bullet_trail_alpha_values, enemy_bullet_trail_alpha_index, enemy_bullet_trail_alpha)
+            enemy_bullet_trail_data[i] = enemy_bullet_trail_info
+        else:
+            # Skip this enemy bullet trail
+            continue
+
         # Create the enemy bullet trail image with the new alpha value
-        enemy_bullet_trail_alpha = enemy_bullet_trail_alphas[enemy_bullet_trail_alpha_index]
         enemy_bullet_trail_image = pygame.Surface((5, 5))
         enemy_bullet_trail_image.set_colorkey((0, 0, 0))
         enemy_bullet_trail_image.set_alpha(enemy_bullet_trail_alpha)
