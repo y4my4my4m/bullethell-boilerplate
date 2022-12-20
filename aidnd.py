@@ -22,11 +22,14 @@ enemy_image = pygame.transform.scale(enemy_image, (64, 64))
 player_rect = player_image.get_rect()
 player_rect.centerx = screen_width // 2
 player_rect.centery = screen_height - 50
+player_health = 100
 
 # Set up the enemy
 enemy_rect = enemy_image.get_rect()
 enemy_rect.centerx = screen_width // 2
 enemy_rect.centery = 50
+enemy_health = 100
+enemy_speed = 2
 
 # Set up the bullets
 bullet_image = pygame.Surface((10, 10))
@@ -60,8 +63,19 @@ enemy_bullet_trail_data = []
 enemy_shoot_timer = 0
 enemy_shoot_delay = 1000 # Shoot every 1000 milliseconds
 
+# Create the health bar rectangles
+player_health_bar_rect = pygame.Rect(50, 50, player_health, 20)
+enemy_health_bar_rect = pygame.Rect(screen_width - 50 - enemy_health, 50, enemy_health, 20)
+
+# Set the health bar positions
+player_health_bar_rect.midtop = (50, 50)
+enemy_health_bar_rect.midtop = (screen_width - 50, 50)
+
 # Set up the clock
 clock = pygame.time.Clock()
+
+# Game Message & effects
+message = ("", (0, 0, 0), (255, 255, 255))
 
 # Main game loop
 running = True
@@ -77,6 +91,49 @@ while running:
                 bullet.centerx = player_rect.centerx
                 bullet.centery = player_rect.centery + 10
                 bullets.append(bullet)
+
+    # Check for player and enemy collisions
+    if player_rect.colliderect(enemy_rect):
+        player_health -= 10
+        enemy_health -= 10
+
+    for bullet in bullets:
+        if enemy_rect.colliderect(bullet):
+            bullets.remove(bullet)
+            enemy_health -= 10
+
+    for enemy_bullet in enemy_bullets:
+        if player_rect.colliderect(enemy_bullet):
+            enemy_bullets.remove(enemy_bullet)
+            player_health -= 10
+
+    # Update the health bar rectangles
+    player_health_bar_rect.width = player_health
+    enemy_health_bar_rect.width = enemy_health
+
+    # Check if the player or enemy has died
+    if player_health <= 0:
+        message = ("Game Over!", (0, 0, 0), (255, 255, 255))
+        # break
+    # Check if the enemy has died
+    if enemy_health <= 0:
+        # Create the explosion animation
+        message = ("You Win!", (0, 0, 0), (255, 255, 255))
+        explosion_animation = []
+        for i in range(44):
+            filename = "explode{}.png".format(i)
+            image = pygame.image.load(filename).convert_alpha()
+            explosion_animation.append(image)
+
+        # Play the explosion animation
+        for image in explosion_animation:
+            screen.blit(image, enemy_rect)
+            pygame.display.flip()
+            pygame.time.delay(100)
+
+        # Remove the enemy from the game
+        # enemies.remove(enemy)
+
 
     # Update the player position
     pressed_keys = pygame.key.get_pressed()
@@ -97,7 +154,20 @@ while running:
     bullets = [b for b in bullets if b.colliderect(screen.get_rect())]
 
     # Update the enemy position
-    enemy_rect.move_ip(random.uniform(-1, 1), 0)
+    # enemy_rect.move_ip(random.uniform(-1, 1), 0)
+
+    # Move the enemy
+    enemy_rect.move_ip(enemy_speed, 0)
+
+    # Check if the enemy has reached the edge of the screen
+    if enemy_rect.right > screen_width or enemy_rect.left < 0:
+        enemy_speed = -enemy_speed
+        enemy_rect.move_ip(0, 50)
+
+    # Check if the enemy should dodge a bullet
+    for bullet in bullets:
+        if abs(bullet.x - enemy_rect.x) < 50:
+            enemy_rect.move_ip(0, random.uniform(-5, 5))
 
     # Update the enemy shooting timer
     enemy_shoot_timer += clock.get_time()
@@ -179,6 +249,14 @@ while running:
     # Draw the enemy
     screen.blit(enemy_image, enemy_rect)
 
+    # Draw the health bar backgrounds
+    pygame.draw.rect(screen, (255, 255, 255), player_health_bar_rect.inflate(4, 4))
+    pygame.draw.rect(screen, (255, 255, 255), enemy_health_bar_rect.inflate(4, 4))
+
+    # Draw the health bars
+    pygame.draw.rect(screen, (255, 0, 0), player_health_bar_rect)
+    pygame.draw.rect(screen, (255, 0, 0), enemy_health_bar_rect)
+
     # Draw the bullets
     for bullet in bullets:
         screen.blit(bullet_image, bullet)
@@ -192,6 +270,27 @@ while running:
     for enemy_bullet_trail in enemy_bullet_trails:
         # Draw the bullet trail
         screen.blit(enemy_bullet_trail_image, enemy_bullet_trail)
+
+    # Render the message to the `screen
+    font = pygame.font.Font(None, 60)
+
+    # Render the outline
+    outline_text = font.render(message[0], True, message[1])
+    outline_rect = outline_text.get_rect()
+    outline_rect.center = (screen_width // 2 - 1, 50 - 1)
+    screen.blit(outline_text, outline_rect)
+    outline_rect.center = (screen_width // 2 + 1, 50 - 1)
+    screen.blit(outline_text, outline_rect)
+    outline_rect.center = (screen_width // 2 - 1, 50 + 1)
+    screen.blit(outline_text, outline_rect)
+    outline_rect.center = (screen_width // 2 + 1, 50 + 1)
+    screen.blit(outline_text, outline_rect)
+
+    # Render the text
+    text = font.render(message[0], True, message[2])
+    text_rect = text.get_rect()
+    text_rect.center = (screen_width // 2, 50)
+    screen.blit(text, text_rect)
 
     # Update the display
     pygame.display.flip()
