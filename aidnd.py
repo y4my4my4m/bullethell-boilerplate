@@ -25,7 +25,7 @@ bg_scroll_speed = 10
 bg_pos_y = 0
 
 # Set up the player
-# player_rect = player_image.get_rect()
+player_rect = player_image.get_rect()
 # player_rect.centerx = screen_width // 2
 # player_rect.centery = screen_height - 50
 
@@ -179,7 +179,7 @@ while running:
     else:
         player_speed = 5
         player_hitbox_size = 32
-    player_hitbox = pygame.Rect(player_x, player_y, player_hitbox_size, player_hitbox_size)
+    player_hitbox = pygame.Rect(player_x + player_rect.width/2 - player_hitbox_size/2, player_y + player_rect.height/2 - player_hitbox_size/2 , player_hitbox_size, player_hitbox_size)
 
     # Update the bullet positions
     for bullet in bullets:
