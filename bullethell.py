@@ -13,7 +13,7 @@ pygame.display.set_caption("Bullet Hell")
 # Load the player and background images
 player_image = pygame.image.load("img/player.png")
 player_image = pygame.transform.scale(player_image, (64, 64))
-background_image = pygame.image.load("img/bgspace_4x.png")
+background_image = pygame.image.load("img/bg/space_4x.png")
 # background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 enemy_image = pygame.image.load("img/enemy.png")
 enemy_image = pygame.transform.scale(enemy_image, (64, 64))
@@ -85,12 +85,12 @@ enemy_shoot_timer = 0
 enemy_shoot_delay = 1000 # Shoot every 1000 milliseconds
 
 # Create the health bar rectangles
-player_health_bar_rect = pygame.Rect(50, 50, player_health, 20)
-enemy_health_bar_rect = pygame.Rect(screen_width - 50 - enemy_health, 50, enemy_health, 20)
+player_health_bar_rect = pygame.Rect(50, 50, player_health, 15)
+enemy_health_bar_rect = pygame.Rect(screen_width - 50 - enemy_health, 20, enemy_health, 15)
 
 # Set the health bar positions
-player_health_bar_rect.midtop = (70, 50)
-enemy_health_bar_rect.midtop = (screen_width - 70, 50)
+player_health_bar_rect.midtop = (player_health_bar_rect.width/2 + 10, 10)
+enemy_health_bar_rect.midtop = (screen_width - enemy_health_bar_rect.width/2 - 10, 10)
 
 # Set up the clock
 clock = pygame.time.Clock()
@@ -142,7 +142,7 @@ while running:
         message = ("You Win!", (0, 0, 0), (255, 255, 255))
         explosion_animation = []
         for i in range(44):
-            filename = "explode{}.png".format(i)
+            filename = "img/explode/explode{}.png".format(i)
             image = pygame.image.load(filename).convert_alpha()
             explosion_animation.append(image)
 
