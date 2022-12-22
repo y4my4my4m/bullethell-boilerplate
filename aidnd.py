@@ -45,7 +45,7 @@ player_health = 100
 enemy_rect = enemy_image.get_rect()
 enemy_rect.centerx = screen_width // 2
 enemy_rect.centery = 50
-enemy_health = 100
+enemy_health = 250
 enemy_speed = 2
 
 # Set up the bullets# Load the player bullet image
@@ -276,22 +276,19 @@ while running:
     bg_pos_y += bg_scroll_speed
 
     # Reset the background position if it has scrolled off the screen
-    if bg_pos_y + background_image.get_height() >= screen_height + background_image.get_height():
-        bg_pos_y = 0 - background_image.get_height()
+    if bg_pos_y >= background_image.get_height():
+        bg_pos_y = 0
 
     screen.blit(background_image, (0, bg_pos_y))
-    screen.blit(background_image, (0, bg_pos_y  + background_image.get_height()))
+    screen.blit(background_image, (0, bg_pos_y - background_image.get_height()))
 
     fill_surface = pygame.Surface((screen_width, screen_height))
     fill_surface.fill((0,0,0))
     fill_surface.set_alpha(180)
     # Draw the semi-opaque black fill
     screen.blit(fill_surface, (0, 0))
-    # Draw the background
-    # screen.blit(background_image, (0, 0))
 
     # Draw the player
-    # screen.blit(player_image, player_rect)
     screen.blit(player_image, (player_x, player_y))
     pygame.draw.rect(screen, (200, 200, 200), player_hitbox, 2)
 
