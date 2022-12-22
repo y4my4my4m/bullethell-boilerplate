@@ -1,4 +1,4 @@
-# bullethell-boilerplate
+# Bullet Hell - Game Boilerplate
 A boilerplate for a bullethell game in Python
 
 ## About
