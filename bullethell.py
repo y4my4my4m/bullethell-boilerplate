@@ -4,11 +4,29 @@ import math
 
 # Initialize Pygame
 pygame.init()
+pygame.mixer.init()
 
 # Set up the display
 screen_width, screen_height = 720, 960
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Bullet Hell")
+
+
+# Load the music file
+music_file = "audio/Ludum_Dare_30-Track_Four.mp3"
+pygame.mixer.music.load(music_file)
+# Load the SFX audio file and get a mixer channel
+bullet_sfx     = pygame.mixer.Sound("audio/Text 1.wav")
+explosion_sfx  = pygame.mixer.Sound("audio/Explosion.wav")
+explosion2_sfx = pygame.mixer.Sound("audio/Explosion2.wav")
+explosion3_sfx = pygame.mixer.Sound("audio/Explosion3.wav")
+player_hit_sfx = pygame.mixer.Sound("audio/Hit damage 1.wav")
+enemy_hit_sfx  = pygame.mixer.Sound("audio/Boss hit 1.wav")
+
+channel = pygame.mixer.Channel(0)
+channel.set_volume(0.5)
+# Play the music file
+pygame.mixer.music.play()
 
 # Load the player and background images
 player_image = pygame.image.load("img/player.png")
@@ -19,7 +37,7 @@ enemy_image = pygame.image.load("img/enemy.png")
 enemy_image = pygame.transform.scale(enemy_image, (64, 64))
 
 # Set the scroll speed
-bg_scroll_speed = 10
+bg_scroll_speed = 4
 
 # Initialize the background position
 bg_pos_y = 0
@@ -108,6 +126,7 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 # Fire a bullet
+                channel.play(bullet_sfx)
                 bullet = bullet_image.get_rect()
                 bullet.centerx = player_x
                 bullet.centery = player_y + 10
@@ -117,16 +136,20 @@ while running:
     if player_hitbox.colliderect(enemy_rect):
         player_health -= 10
         enemy_health -= 10
+        channel.play(player_hit_sfx)
+        channel.play(enemy_hit_sfx)
 
     for bullet in bullets:
         if enemy_rect.colliderect(bullet):
             bullets.remove(bullet)
             enemy_health -= 10
+            channel.play(enemy_hit_sfx)
 
     for enemy_bullet in enemy_bullets:
         if player_hitbox.colliderect(enemy_bullet):
             enemy_bullets.remove(enemy_bullet)
             player_health -= 10
+            channel.play(player_hit_sfx)
 
     # Update the health bar rectangles
     player_health_bar_rect.width = player_health
@@ -140,6 +163,7 @@ while running:
     if enemy_health <= 0:
         # Create the explosion animation
         message = ("You Win!", (0, 0, 0), (255, 255, 255))
+        channel.play(explosion_sfx)
         explosion_animation = []
         for i in range(44):
             filename = "img/explode/explode{}.png".format(i)
