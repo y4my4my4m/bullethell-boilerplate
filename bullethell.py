@@ -16,20 +16,33 @@ pygame.display.set_caption("Bullet Hell")
 music_file = "audio/Ludum_Dare_30-Track_Four.mp3"
 pygame.mixer.music.load(music_file)
 # Load the SFX audio file and get a mixer channel
-bullet_sfx     = pygame.mixer.Sound("audio/Text 1.wav")
+bullet_sfx     = pygame.mixer.Sound("audio/Noise Laser 001.wav")
+bullet2_sfx     = pygame.mixer.Sound("audio/Futuristic Laser 001.wav")
 explosion_sfx  = pygame.mixer.Sound("audio/Explosion.wav")
 explosion2_sfx = pygame.mixer.Sound("audio/Explosion2.wav")
 explosion3_sfx = pygame.mixer.Sound("audio/Explosion3.wav")
 player_hit_sfx = pygame.mixer.Sound("audio/Hit damage 1.wav")
 enemy_hit_sfx  = pygame.mixer.Sound("audio/Boss hit 1.wav")
 
-channel = pygame.mixer.Channel(0)
-channel.set_volume(0.5)
+channel_b = pygame.mixer.Channel(0)
+channel_b2 = pygame.mixer.Channel(1)
+channel3_e = pygame.mixer.Channel(2)
+channel4 = pygame.mixer.Channel(3)
+channel_p_hit = pygame.mixer.Channel(4)
+channel_e_hit = pygame.mixer.Channel(5)
+
+channel_b.set_volume(0.5)
+channel_b2.set_volume(0.5)
+channel3_e.set_volume(0.5)
+channel4.set_volume(0.5)
+channel_p_hit.set_volume(1)
+channel_e_hit.set_volume(1)
+
 # Play the music file
 pygame.mixer.music.play()
 
 # Load the player and background images
-player_image = pygame.image.load("img/player.png")
+player_image = pygame.image.load("img/player.png").convert_alpha()
 player_image = pygame.transform.scale(player_image, (64, 64))
 background_image = pygame.image.load("img/bg/space_4x.png")
 # background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
@@ -37,15 +50,17 @@ enemy_image = pygame.image.load("img/enemy.png")
 enemy_image = pygame.transform.scale(enemy_image, (64, 64))
 
 # Set the scroll speed
-bg_scroll_speed = 4
+bg_scroll_speed = 20
 
 # Initialize the background position
 bg_pos_y = 0
 
 # Set up the player
 player_rect = player_image.get_rect()
-# player_rect.centerx = screen_width // 2
-# player_rect.centery = screen_height - 50
+
+# Set the hit timer and hit duration
+hit_timer = 0
+hit_duration = 30  # 1000 milliseconds = 1 second
 
 # Set the player speed and hitbox size
 player_speed = 5
@@ -55,7 +70,6 @@ player_hitbox_size = 32
 player_x = screen_width / 2
 player_y = screen_height - player_hitbox_size
 player_hitbox = pygame.Rect(player_x, player_y, player_hitbox_size, player_hitbox_size)
-
 
 player_health = 100
 
@@ -126,30 +140,41 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 # Fire a bullet
-                channel.play(bullet_sfx)
+                channel_b.play(bullet_sfx)
                 bullet = bullet_image.get_rect()
                 bullet.centerx = player_x
                 bullet.centery = player_y + 10
                 bullets.append(bullet)
 
+    # Update the hit timer
+    if hit_timer > 0:
+        hit_timer -= clock.tick(60)
+        player_image.set_alpha(0)
+    else:
+        # Reset the player image back
+        player_image = pygame.image.load("img/player.png")
+        player_image = pygame.transform.scale(player_image, (64, 64))
+
     # Check for player and enemy collisions
     if player_hitbox.colliderect(enemy_rect):
         player_health -= 10
         enemy_health -= 10
-        channel.play(player_hit_sfx)
-        channel.play(enemy_hit_sfx)
+        channel_p_hit.play(player_hit_sfx)
+        channel_e_hit.play(enemy_hit_sfx)
+        hit_timer = hit_duration
 
     for bullet in bullets:
         if enemy_rect.colliderect(bullet):
             bullets.remove(bullet)
             enemy_health -= 10
-            channel.play(enemy_hit_sfx)
+            channel_e_hit.play(enemy_hit_sfx)
 
     for enemy_bullet in enemy_bullets:
         if player_hitbox.colliderect(enemy_bullet):
             enemy_bullets.remove(enemy_bullet)
             player_health -= 10
-            channel.play(player_hit_sfx)
+            channel_p_hit.play(player_hit_sfx)
+            hit_timer = hit_duration
 
     # Update the health bar rectangles
     player_health_bar_rect.width = player_health
@@ -163,7 +188,7 @@ while running:
     if enemy_health <= 0:
         # Create the explosion animation
         message = ("You Win!", (0, 0, 0), (255, 255, 255))
-        channel.play(explosion_sfx)
+        channel3_e.play(explosion_sfx)
         explosion_animation = []
         for i in range(44):
             filename = "img/explode/explode{}.png".format(i)
@@ -233,6 +258,7 @@ while running:
 
         # Fire a spread of bullets
         spread = 10 # Degrees
+        channel_b2.play(bullet2_sfx)
         for i in range(-spread // 2, spread // 2 + 1):
             angle = i * (360 / spread)
             dx, dy = pygame.math.Vector2(1, 0).rotate(angle)
