@@ -25,18 +25,18 @@ bg_scroll_speed = 10
 bg_pos_y = 0
 
 # Set up the player
-player_rect = player_image.get_rect()
-player_rect.centerx = screen_width // 2
-player_rect.centery = screen_height - 50
+# player_rect = player_image.get_rect()
+# player_rect.centerx = screen_width // 2
+# player_rect.centery = screen_height - 50
 
 # Set the player speed and hitbox size
-# player_speed = 5
-# player_hitbox_size = 32
+player_speed = 5
+player_hitbox_size = 32
 
 # # Initialize the player position and hitbox
-# player_x = screen_width / 2
-# player_y = screen_height - player_hitbox_size
-# player_hitbox = pygame.Rect(player_x, player_y, player_hitbox_size, player_hitbox_size)
+player_x = screen_width / 2
+player_y = screen_height - player_hitbox_size
+player_hitbox = pygame.Rect(player_x, player_y, player_hitbox_size, player_hitbox_size)
 
 
 player_health = 100
@@ -109,12 +109,12 @@ while running:
             if event.key == pygame.K_SPACE:
                 # Fire a bullet
                 bullet = bullet_image.get_rect()
-                bullet.centerx = player_rect.centerx
-                bullet.centery = player_rect.centery + 10
+                bullet.centerx = player_x
+                bullet.centery = player_y + 10
                 bullets.append(bullet)
 
     # Check for player and enemy collisions
-    if player_rect.colliderect(enemy_rect):
+    if player_hitbox.colliderect(enemy_rect):
         player_health -= 10
         enemy_health -= 10
 
@@ -124,7 +124,7 @@ while running:
             enemy_health -= 10
 
     for enemy_bullet in enemy_bullets:
-        if player_rect.colliderect(enemy_bullet):
+        if player_hitbox.colliderect(enemy_bullet):
             enemy_bullets.remove(enemy_bullet)
             player_health -= 10
 
@@ -159,13 +159,27 @@ while running:
     # Update the player position
     pressed_keys = pygame.key.get_pressed()
     if pressed_keys[pygame.K_LEFT]:
-        player_rect.move_ip(-5, 0)
+        player_x -= player_speed
+        player_hitbox.x -= player_speed
     if pressed_keys[pygame.K_RIGHT]:
-        player_rect.move_ip(5, 0)
+        player_x += player_speed
+        player_hitbox.x += player_speed
     if pressed_keys[pygame.K_UP]:
-        player_rect.move_ip(0, -3)
+        player_y -= player_speed
+        player_hitbox.y -= player_speed
     if pressed_keys[pygame.K_DOWN]:
-        player_rect.move_ip(0, 3)
+        player_y += player_speed
+        player_hitbox.y += player_speed
+    if pressed_keys[pygame.K_LCTRL]:
+        player_speed = 3
+        player_hitbox_size = 16
+    elif pressed_keys[pygame.K_LSHIFT]:
+        player_speed = 10
+        player_hitbox_size = 50
+    else:
+        player_speed = 5
+        player_hitbox_size = 32
+    player_hitbox = pygame.Rect(player_x, player_y, player_hitbox_size, player_hitbox_size)
 
     # Update the bullet positions
     for bullet in bullets:
@@ -268,11 +282,18 @@ while running:
     screen.blit(background_image, (0, bg_pos_y))
     screen.blit(background_image, (0, bg_pos_y  + background_image.get_height()))
 
+    fill_surface = pygame.Surface((screen_width, screen_height))
+    fill_surface.fill((0,0,0))
+    fill_surface.set_alpha(180)
+    # Draw the semi-opaque black fill
+    screen.blit(fill_surface, (0, 0))
     # Draw the background
     # screen.blit(background_image, (0, 0))
 
     # Draw the player
-    screen.blit(player_image, player_rect)
+    # screen.blit(player_image, player_rect)
+    screen.blit(player_image, (player_x, player_y))
+    pygame.draw.rect(screen, (200, 200, 200), player_hitbox, 2)
 
     # Draw the enemy
     screen.blit(enemy_image, enemy_rect)
