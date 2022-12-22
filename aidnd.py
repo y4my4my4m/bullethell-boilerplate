@@ -6,22 +6,39 @@ import math
 pygame.init()
 
 # Set up the display
-screen_width, screen_height = 768, 1024
+screen_width, screen_height = 720, 960
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Bullet Hell")
 
 # Load the player and background images
 player_image = pygame.image.load("player.png")
 player_image = pygame.transform.scale(player_image, (64, 64))
-background_image = pygame.image.load("space2.png")
-background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
+background_image = pygame.image.load("space_4x.png")
+# background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 enemy_image = pygame.image.load("enemy.png")
 enemy_image = pygame.transform.scale(enemy_image, (64, 64))
+
+# Set the scroll speed
+bg_scroll_speed = 10
+
+# Initialize the background position
+bg_pos_y = 0
 
 # Set up the player
 player_rect = player_image.get_rect()
 player_rect.centerx = screen_width // 2
 player_rect.centery = screen_height - 50
+
+# Set the player speed and hitbox size
+# player_speed = 5
+# player_hitbox_size = 32
+
+# # Initialize the player position and hitbox
+# player_x = screen_width / 2
+# player_y = screen_height - player_hitbox_size
+# player_hitbox = pygame.Rect(player_x, player_y, player_hitbox_size, player_hitbox_size)
+
+
 player_health = 100
 
 # Set up the enemy
@@ -31,9 +48,13 @@ enemy_rect.centery = 50
 enemy_health = 100
 enemy_speed = 2
 
-# Set up the bullets
-bullet_image = pygame.Surface((10, 10))
-bullet_image.fill((255, 55, 255))
+# Set up the bullets# Load the player bullet image
+player_bullet_image = pygame.image.load("bullets/01.png")
+player_bullet_image = pygame.transform.scale(player_bullet_image, (64, 64))
+# bullet_image = pygame.Surface((10, 10))
+bullet_image = pygame.Surface((64, 64), pygame.SRCALPHA)
+bullet_image.blit(player_bullet_image, (0, 0))
+# bullet_image.fill((255, 55, 255))
 bullets = []
 
 # Set up the enemy bullets
@@ -68,8 +89,8 @@ player_health_bar_rect = pygame.Rect(50, 50, player_health, 20)
 enemy_health_bar_rect = pygame.Rect(screen_width - 50 - enemy_health, 50, enemy_health, 20)
 
 # Set the health bar positions
-player_health_bar_rect.midtop = (50, 50)
-enemy_health_bar_rect.midtop = (screen_width - 50, 50)
+player_health_bar_rect.midtop = (70, 50)
+enemy_health_bar_rect.midtop = (screen_width - 70, 50)
 
 # Set up the clock
 clock = pygame.time.Clock()
@@ -152,9 +173,6 @@ while running:
 
     # Remove bullets that have left the screen
     bullets = [b for b in bullets if b.colliderect(screen.get_rect())]
-
-    # Update the enemy position
-    # enemy_rect.move_ip(random.uniform(-1, 1), 0)
 
     # Move the enemy
     enemy_rect.move_ip(enemy_speed, 0)
@@ -240,8 +258,18 @@ while running:
     # Remove enemy bullets that have left the screen
     enemy_bullets = [b for b in enemy_bullets if b.colliderect(screen.get_rect())]
 
+    # Update the background position
+    bg_pos_y += bg_scroll_speed
+
+    # Reset the background position if it has scrolled off the screen
+    if bg_pos_y + background_image.get_height() >= screen_height + background_image.get_height():
+        bg_pos_y = 0 - background_image.get_height()
+
+    screen.blit(background_image, (0, bg_pos_y))
+    screen.blit(background_image, (0, bg_pos_y  + background_image.get_height()))
+
     # Draw the background
-    screen.blit(background_image, (0, 0))
+    # screen.blit(background_image, (0, 0))
 
     # Draw the player
     screen.blit(player_image, player_rect)
@@ -254,7 +282,7 @@ while running:
     pygame.draw.rect(screen, (255, 255, 255), enemy_health_bar_rect.inflate(4, 4))
 
     # Draw the health bars
-    pygame.draw.rect(screen, (255, 0, 0), player_health_bar_rect)
+    pygame.draw.rect(screen, (20, 20, 220), player_health_bar_rect)
     pygame.draw.rect(screen, (255, 0, 0), enemy_health_bar_rect)
 
     # Draw the bullets
